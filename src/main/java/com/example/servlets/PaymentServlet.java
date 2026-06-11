@@ -11,7 +11,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Random;
+// import java.util.Random; // Removed: no longer simulating random outcomes
 
 public class PaymentServlet extends HttpServlet {
     private static final String DB_URL = "jdbc:sqlserver://LAPTOP-7KOM5EIS;databaseName=SkyLinkOnline;integratedSecurity=false;";
@@ -39,9 +39,8 @@ public class PaymentServlet extends HttpServlet {
         double amount = Double.parseDouble(amountStr);
         int booking_id = Integer.parseInt(booking_idStr);
 
-        // Simulate payment success/failure (real එකේ API call)
-        Random rand = new Random();
-        String status = rand.nextBoolean() ? "success" : "failed"; // 50% chance
+        // Always treat payments as successful (disable random simulation)
+        String status = "success";
 
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -70,7 +69,7 @@ public class PaymentServlet extends HttpServlet {
                     updateBooking.setInt(2, user_id); // Security: only user's booking
                     int updated = updateBooking.executeUpdate();
                     if (updated > 0) {
-                        response.sendRedirect("ticket.jsp?booking_id=" + booking_id + "&message=Payment successful");
+                        response.sendRedirect(request.getContextPath() + "/ticket.jsp?booking_id=" + booking_id + "&message=Payment successful");
                     } else {
                         response.sendRedirect("process_payment.jsp?message=Booking not found");
                     }

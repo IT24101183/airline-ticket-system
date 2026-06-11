@@ -3,10 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
          version="5.0">
-    <display-name>Air Ticket Reservation System</display-name>
+
+    <display-name>Finance Manager</display-name>
+
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
+
     <!-- Servlets -->
     <servlet>
         <servlet-name>RegisterServlet</servlet-name>
@@ -16,6 +19,7 @@
         <servlet-name>RegisterServlet</servlet-name>
         <url-pattern>/register</url-pattern>
     </servlet-mapping>
+
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
         <servlet-class>com.example.servlets.LoginServlet</servlet-class>
@@ -24,6 +28,7 @@
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/login</url-pattern>
     </servlet-mapping>
+
     <servlet>
         <servlet-name>LogoutServlet</servlet-name>
         <servlet-class>com.example.servlets.LogoutServlet</servlet-class>
@@ -32,37 +37,6 @@
         <servlet-name>LogoutServlet</servlet-name>
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
-    <servlet>
-        <servlet-name>PaymentServlet</servlet-name>
-        <servlet-class>com.example.servlets.PaymentServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>PaymentServlet</servlet-name>
-        <url-pattern>/payment</url-pattern>
-    </servlet-mapping>
-
-
-    <servlet>
-        <servlet-name>SearchServlet</servlet-name>
-        <servlet-class>com.example.servlets.SearchServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>SearchServlet</servlet-name>
-        <url-pattern>/search</url-pattern>
-    </servlet-mapping>
-
-
-    <servlet>
-        <servlet-name>BookServlet</servlet-name>
-        <servlet-class>com.example.servlets.BookServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>BookServlet</servlet-name>
-        <url-pattern>/book</url-pattern>
-    </servlet-mapping>
-
-
-
 
 
 

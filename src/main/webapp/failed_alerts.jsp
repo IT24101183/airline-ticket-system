@@ -6,7 +6,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Payment Logs</title>
+  <title>Failed Transaction Alerts</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -19,6 +19,7 @@
     .card{ border-radius:var(--radius); box-shadow:0 6px 20px rgba(17,24,39,0.06); border:none; background:#fff; }
     .table-container{ max-width:1200px; margin:18px auto; }
     .muted{ color:var(--muted); }
+    .action-links a{ margin-right:8px; }
   </style>
 </head>
 <body>
@@ -45,17 +46,27 @@
 
 <div class="container dashboard-header" style="max-width:1200px;">
   <div>
-    <h1>Payment Logs</h1>
-    <div class="muted" style="margin-top:6px;">Recent internal logs for payment processing</div>
+    <h1>Failed Transaction Alerts</h1>
+    <div class="muted" style="margin-top:6px;">Transactions marked as failed — take action to retry or refund</div>
   </div>
   <div class="text-end muted">
-    <div style="font-size:13px;">Ordered by newest</div>
+    <div style="font-size:13px;">Ordered by newest first</div>
   </div>
 </div>
 
 <div class="table-container container">
   <div class="card p-3">
     <div class="card-body">
+      <!-- show message if present -->
+      <%
+        String msg = request.getParameter("message");
+        if (msg != null && !msg.trim().isEmpty()) {
+      %>
+        <div class="alert alert-info"><%= java.net.URLDecoder.decode(msg, "UTF-8") %></div>
+      <%
+        }
+      %>
+
       <%
         String dbUrl = "jdbc:sqlserver://LAPTOP-7KOM5EIS;databaseName=SkyLinkOnline;integratedSecurity=false;";
         String dbUser = "sa";
@@ -69,19 +80,22 @@
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
 
-            String sql = "SELECT id, transaction_id, log_message, log_date FROM PaymentLogs ORDER BY log_date DESC";
+            String sql = "SELECT id, user_id, amount, payment_method, transaction_date, booking_id FROM Transactions WHERE status = 'failed' ORDER BY transaction_date DESC";
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
       %>
 
       <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table table-hover align-middle">
           <thead class="table-light">
             <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Transaction ID</th>
-              <th scope="col">Log Message</th>
-              <th scope="col">Date</th>
+              <th>ID</th>
+              <th>User ID</th>
+              <th>Amount</th>
+              <th>Payment Method</th>
+              <th>Date</th>
+              <th>Booking ID</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -91,22 +105,42 @@
               while (rs.next()) {
                 hasData = true;
                 int id = rs.getInt("id");
-                int txId = rs.getInt("transaction_id");
-                String msg = rs.getString("log_message");
-                Timestamp t = rs.getTimestamp("log_date");
+                int userId = rs.getInt("user_id");
+                double amount = rs.getDouble("amount");
+                String pm = rs.getString("payment_method");
+                Timestamp t = rs.getTimestamp("transaction_date");
                 String dateStr = (t != null) ? sdf.format(t) : "N/A";
+                Object bookingObj = rs.getObject("booking_id");
+                String booking = (bookingObj != null) ? String.valueOf(rs.getInt("booking_id")) : "N/A";
             %>
             <tr>
               <td><%= id %></td>
-              <td><%= txId %></td>
-              <td style="max-width:540px; word-wrap:break-word;"><%= msg %></td>
+              <td><%= userId %></td>
+              <td>Rs. <%= String.format("%.2f", amount) %></td>
+              <td><%= pm %></td>
               <td><%= dateStr %></td>
+              <td><%= booking %></td>
+              <td class="action-links">
+                <!-- Retry form -->
+                <form method="post" action="<%= request.getContextPath() %>/updatePayment" style="display:inline;" onsubmit="return confirm('Mark transaction <%= id %> as SUCCESS?');">
+                  <input type="hidden" name="action" value="retry">
+                  <input type="hidden" name="id" value="<%= id %>">
+                  <button type="submit" class="btn btn-sm btn-outline-primary" aria-label="Retry transaction <%= id %>">Retry</button>
+                </form>
+
+                <!-- Refund form -->
+                <form method="post" action="<%= request.getContextPath() %>/updatePayment" style="display:inline;" onsubmit="return confirm('Refund transaction <%= id %>?');">
+                  <input type="hidden" name="action" value="refund">
+                  <input type="hidden" name="id" value="<%= id %>">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Refund transaction <%= id %>">Refund</button>
+                </form>
+              </td>
             </tr>
             <%
               } // end while
               if (!hasData) {
             %>
-            <tr><td colspan="4" class="text-center muted">No payment logs available.</td></tr>
+            <tr><td colspan="7" class="text-center muted">No failed transactions alerts.</td></tr>
             <%
               }
             %>
@@ -119,7 +153,7 @@
             e.printStackTrace();
       %>
         <div class="alert alert-danger" role="alert">
-          Error viewing logs. Please contact admin.
+          Error viewing alerts. Please contact admin.
         </div>
       <%
         } finally {
@@ -131,7 +165,7 @@
 
       <div class="d-flex justify-content-between align-items-center mt-3">
         <a href="finance_dashboard.jsp" class="btn btn-outline-secondary">← Back to Dashboard</a>
-        <div class="muted" style="font-size:13px;">Logs are read-only in this view</div>
+        <div class="muted" style="font-size:13px;">Actions (Retry / Refund) update the transaction status in DB</div>
       </div>
     </div>
   </div>

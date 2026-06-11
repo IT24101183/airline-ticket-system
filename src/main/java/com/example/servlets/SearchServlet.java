@@ -12,11 +12,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+//database Connection Details
+
 public class SearchServlet extends HttpServlet {
     private static final String DB_URL = "jdbc:sqlserver://LAPTOP-7KOM5EIS;databaseName=SkyLinkOnline;integratedSecurity=false;";
     private static final String DB_USER = "sa";
     private static final String DB_PASSWORD = "789";
 
+    //Getting Search Details
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String departure_airport = request.getParameter("departure_airport");
@@ -25,12 +28,16 @@ public class SearchServlet extends HttpServlet {
         String flight_class = request.getParameter("flight_class");
         String passengersStr = request.getParameter("passengers");
 
+        //search data Validation
+
         if (departure_airport == null || arrival_airport == null || departure_date == null || flight_class == null || passengersStr == null) {
             response.sendRedirect("index.jsp");
             return;
         }
 
         int passengers = Integer.parseInt(passengersStr);
+
+        //search with database
 
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -42,6 +49,8 @@ public class SearchServlet extends HttpServlet {
                 stmt.setString(4, flight_class);
                 stmt.setInt(5, passengers);
                 ResultSet rs = stmt.executeQuery();
+
+                //Results Forward
 
                 request.setAttribute("results", rs);
                 RequestDispatcher dispatcher = request.getRequestDispatcher("results.jsp");
